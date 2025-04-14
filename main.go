@@ -93,22 +93,29 @@ func encodeDnsName(name string) []byte {
 	return buf.Bytes()
 }
 
-func buildQuery(domainName string, recordType int) ([]byte, error) {
-
-	var buf bytes.Buffer
-
-	nameByte := encodeDnsName(domainName)
+func genHeader() DNSHeader {
 	id := rand.Intn(65535)
 	recurrsionDesired := 1 << 8
 	header := DNSHeader{}
 	header.id = uint16(id)
 	header.flags = uint16(recurrsionDesired)
 	header.numQuestions = uint16(1)
+	return header
+}
+func genQuestion(name string, recordType int) DNSQuestion {
+	nameByte := encodeDnsName(name)
 	question := DNSQuestion{}
 	question.name = nameByte
 	question.fieldType = uint16(recordType)
 	question.fieldClass = uint16(Class)
+	return question
+}
 
+func buildQuery(domainName string, recordType int) ([]byte, error) {
+
+	var buf bytes.Buffer
+	header := genHeader()
+	question := genQuestion(domainName, recordType)
 	headerByte := headerToBytes(header)
 	questionByte, err := questionToBytes(question)
 
